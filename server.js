@@ -5,6 +5,7 @@ const userRoutes = require('./routes/userRoutes');
 const clientRoutes = require('./routes/clientRoutes');
 const errorHandler = require('./middleware/errorHandler');
 const swaggerDocs = require('./docs/swagger');
+const path = require('path');
 
 // Load environment variables
 dotenv.config();
@@ -16,6 +17,8 @@ const API_PREFIX = '/api/v1';
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Serve uploaded files statically
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // API routes
 app.use(`${API_PREFIX}/users`, userRoutes);
