@@ -35,6 +35,7 @@ exports.createUser = async (req, res, next) => {
       first_name,
       last_name,
       user_type_id: roleId,
+      
     });
 
     res.status(201).json({
