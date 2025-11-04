@@ -1,6 +1,6 @@
 const db = require('../db/connection');
 
-const PropertyImage = {
+const ResidentialPropertyImage = {
   async addImages(images) {
     const result = await db('residential_property_images')
       .insert(images)
@@ -46,4 +46,4 @@ const PropertyImage = {
   },
 };
 
-module.exports = PropertyImage;
+module.exports = ResidentialPropertyImage;

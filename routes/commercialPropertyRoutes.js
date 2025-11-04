@@ -1,35 +1,35 @@
 const express = require('express');
 const router = express.Router();
-const residentialPropertyController = require('../controllers/residentialPropertyController');
+const commercialPropertyController = require('../controllers/commercialPropertyController');
 const upload = require('../middleware/upload');
 const { verifyToken } = require('../middleware/authMiddleware');
 
 /**
  * @swagger
  * tags:
- *   name: Residential Property
- *   description: Manage residential properties
+ *   name: Commercial Property
+ *   description: Manage commercial properties
  */
 
 
 /**
  * @swagger
- * /residential-properties:
+ * /commercial-properties:
  *   get:
- *     summary: Get all residential properties
- *     tags: [Residential Property]
+ *     summary: Get all commercial properties
+ *     tags: [Commercial Property]
  *     responses:
  *       200:
  *         description: List of all properties
  */
-router.get('/', residentialPropertyController.getProperties);
+router.get('/', commercialPropertyController.getProperties);
 
 /**
  * @swagger
- * /residential-properties/{id}:
+ * /commercial-properties/{id}:
  *   get:
  *     summary: Get single property by ID
- *     tags: [Residential Property]
+ *     tags: [Commercial Property]
  *     parameters:
  *       - in: path
  *         name: id
@@ -43,15 +43,15 @@ router.get('/', residentialPropertyController.getProperties);
  *       404:
  *         description: Property not found
  */
-router.get('/:id', residentialPropertyController.getPropertyById);
+router.get('/:id', commercialPropertyController.getPropertyById);
 
 
 /**
  * @swagger
- * /residential-properties/create:
+ * /commercial-properties/create:
  *   post:
- *     summary: Create a new residential property with images
- *     tags: [Residential Property]
+ *     summary: Create a new commercial property with images
+ *     tags: [Commercial Property]
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -67,9 +67,6 @@ router.get('/:id', residentialPropertyController.getPropertyById);
  *               category:
  *                 type: string
  *                 example: "apartment"
- *               listing_type:
- *                 type: string
- *                 example: "rent"
  *               description:
  *                 type: string
  *                 example: "Spacious 2-bedroom apartment with ocean view."
@@ -82,6 +79,15 @@ router.get('/:id', residentialPropertyController.getPropertyById);
  *               county:
  *                 type: string
  *                 example: "Mombasa County"
+ *               sub_county:
+ *                 type: string
+ *                 example: "Nyali"
+ *               ward:
+ *                  type: string
+ *                  example: "Kongowea"
+ *               postal_code:
+ *                  type: string
+ *                  example: "80100"  
  *               latitude:
  *                 type: number
  *                 example: -4.0435
@@ -91,12 +97,6 @@ router.get('/:id', residentialPropertyController.getPropertyById);
  *               price:
  *                 type: number
  *                 example: 80000
- *               bedrooms:
- *                 type: integer
- *                 example: 2
- *               bathrooms:
- *                 type: integer
- *                 example: 2
  *               size_sqft:
  *                 type: integer
  *                 example: 1200
@@ -125,15 +125,15 @@ router.post(
   '/create',
   verifyToken,
   upload.array('images', 10),
-  residentialPropertyController.createProperty
+  commercialPropertyController.createProperty
 )
 
 /**
  * @swagger
- * /residential-properties/update/{id}:
+ * /commercial-properties/update/{id}:
  *   put:
  *     summary: Update an existing property and optionally upload images
- *     tags: [Residential Property]
+ *     tags: [Commercial Property]
  *     consumes:
  *       - multipart/form-data
  *     parameters:
@@ -144,14 +144,14 @@ router.post(
  *         required: true
  *         description: Property ID
  */
-router.put('/update/:id', verifyToken, upload.array('images', 10), residentialPropertyController.updateProperty)
+router.put('/update/:id', verifyToken, upload.array('images', 10), commercialPropertyController.updateProperty)
 
 /**
  * @swagger
- * /residential-properties/delete/{id}:
+ * /commercial-properties/delete/{id}:
  *   delete:
- *     summary: Delete a residential property
- *     tags: [Residential Property]
+ *     summary: Delete a commercial property
+ *     tags: [Commercial Property]
  *     parameters:
  *       - in: path
  *         name: id
@@ -163,14 +163,14 @@ router.put('/update/:id', verifyToken, upload.array('images', 10), residentialPr
  *       200:
  *         description: Property deleted successfully
  */
-router.delete('/delete/:id', verifyToken, residentialPropertyController.deleteProperty);
+router.delete('/delete/:id', verifyToken, commercialPropertyController.deleteProperty);
 
 /**
  * @swagger
- * /residential-properties/{id}/images:
+ * /commercial-properties/{id}/images:
  *   post:
  *     summary: Upload an image for a property
- *     tags: [Residential Property]
+ *     tags: [Commercial Property]
  *     parameters:
  *       - in: path
  *         name: id
@@ -202,7 +202,7 @@ router.post(
   '/:id/images',
   verifyToken,
   upload.single('image'),
-  residentialPropertyController.uploadPropertyImage
+  commercialPropertyController.uploadPropertyImage
 );
 
 module.exports = router;

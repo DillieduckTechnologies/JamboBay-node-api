@@ -45,17 +45,20 @@ const PropertyLease = {
   },
 
   // Update lease status and reviewer info
-  async reviewLease(id, reviewerId, status) {
-    const [lease] = await db('property_leases')
-      .where({ id })
-      .update({
-        status,
-        reviewed_by: reviewerId,
-        reviewed_at: db.fn.now(),
-      })
-      .returning('*');
-    return lease;
-  },
+ async reviewLease(id, reviewerId, status) {
+  const leaseId = parseInt(id, 10);
+
+  const [lease] = await db('property_leases')
+    .where({ id: leaseId })
+    .update({
+      status,
+      reviewed_by: reviewerId,
+      reviewed_at: db.fn.now(),
+    })
+    .returning('*');
+
+  return lease;
+},
 
   // Delete lease
   async delete(id) {

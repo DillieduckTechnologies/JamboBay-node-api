@@ -8,7 +8,9 @@ const agentRoutes = require('./routes/agentRoutes');
 const AgentReferenceRoutes = require('./routes/agentReferenceRoutes');
 const companyMembershipRoutes = require('./routes/companyMembershipRoutes');
 const residentialPropertyRoutes = require('./routes/residentiaPropertyRoutes');
+const commercialPropertyRoutes = require('./routes/commercialPropertyRoutes');
 const leaseRoutes = require('./routes/leaseRoutes');
+const appointmentRoutes = require('./routes/appointmentRoutes');
 
 const errorHandler = require('./middleware/errorHandler');
 const swaggerDocs = require('./docs/swagger');
@@ -35,7 +37,9 @@ app.use(`${API_PREFIX}/agents`, agentRoutes);
 app.use(`${API_PREFIX}/agent-references`, AgentReferenceRoutes);
 app.use(`${API_PREFIX}/company-memberships`, companyMembershipRoutes);
 app.use(`${API_PREFIX}/residential-properties`, residentialPropertyRoutes);
-app.use(`${API_PREFIX}/property-leases`, leaseRoutes);
+app.use(`${API_PREFIX}/leases`, leaseRoutes);
+app.use(`${API_PREFIX}/commercial-properties`, commercialPropertyRoutes);
+app.use(`${API_PREFIX}/appointments`, appointmentRoutes);
 
 // Global error handler
 app.use(errorHandler);

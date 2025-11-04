@@ -1,4 +1,5 @@
 const PropertyLease = require('../models/propertyLease');
+const logger = require('../utils/logger');
 
 exports.applyForLease = async (req, res) => {
   try {
@@ -13,7 +14,6 @@ exports.applyForLease = async (req, res) => {
       special_requests,
     } = req.body;
 
-    // Basic validation
     if (!client_profile_id || (!residential_property_id && !commercial_property_id)) {
       return res.status(400).json({ message: 'Property and client_profile_id are required' });
     }
@@ -32,6 +32,7 @@ exports.applyForLease = async (req, res) => {
     res.status(201).json({ message: 'Lease application submitted successfully', lease });
   } catch (error) {
     console.error('Error applying for lease:', error);
+    logger.error('Error applying for lease:', error);
     res.status(500).json({ message: 'Error applying for lease', error });
   }
 };
@@ -62,6 +63,11 @@ exports.reviewLease = async (req, res) => {
     const { id } = req.params;
     const reviewerId = req.user?.id || req.body.reviewer_id;
     const { status } = req.body;
+
+    //Agent can only approve or reject
+    if(req.user.role.name !== 'agent'){ 
+      return res.status(403).json({ message: 'Forbidden: Only agents can review leases' });
+    }
 
     if (!['approved', 'rejected'].includes(status)) {
       return res.status(400).json({ message: 'Invalid status value' });

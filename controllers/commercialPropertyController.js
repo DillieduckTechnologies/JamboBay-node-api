@@ -1,5 +1,5 @@
-const ResidentialProperty = require('../models/residentialProperty');
-const PropertyImage = require('../models/residentialPropertyImage');
+const CommercialProperty = require('../models/commercialProperty');
+const PropertyImage = require('../models/commercialPropertyImage');
 const logger = require('../utils/logger');
 const { log } = require('winston');
 
@@ -8,40 +8,46 @@ exports.createProperty = async (req, res, next) => {
     const {
       name,
       category,
-      listing_type,
       description,
       physical_address,
       city,
       county,
-      gps_latitude,
-      gps_longitude,
+      sub_county,
+      ward,
+      postal_code,
+
+      latitude,
+      longitude,
+      auto_geocode,
       price,
-      bedrooms,
-      bathrooms,
       size_sqft,
       available_from,
       company_id,
       agent_id,
+      
     } = req.body;
 
-    const newProperty = await ResidentialProperty.create({
+    const newProperty = await  CommercialProperty.create({
       name,
       category,
-      listing_type,
       description,
       physical_address,
       city,
       county,
-      gps_latitude,
-      gps_longitude,
+      sub_county,
+      ward,
+      postal_code,
+
+      latitude,
+      longitude,
+      auto_geocode,
       price,
-      bedrooms,
-      bathrooms,
       size_sqft,
       available_from,
       company_id,
       agent_id,
-    });
+      added_by: req.user.id,
+    });  
 
     // Handle image uploads
     if (req.files && req.files.length > 0) {
@@ -71,7 +77,7 @@ exports.updateProperty = async (req, res, next) => {
     const { id } = req.params;
     const updatedData = { ...req.body };
 
-    const updatedProperty = await ResidentialProperty.update(id, updatedData);
+    const updatedProperty = await CommercialProperty.update(id, updatedData);
 
     if (!updatedProperty)
       return res.status(404).json({ message: 'Property not found' });
@@ -102,7 +108,7 @@ exports.updateProperty = async (req, res, next) => {
 
 exports.getProperties = async (req, res) => {
   try {
-    const properties = await ResidentialProperty.findAll();
+    const properties = await CommercialProperty.findAll();
     if (!properties.length) {
       return res.json([]);
     }
@@ -137,7 +143,7 @@ exports.getProperties = async (req, res) => {
 exports.getPropertyById = async (req, res) => {
   try {
     const { id } = req.params;
-    const property = await ResidentialProperty.findById(id);
+    const property = await CommercialProperty.findById(id);
     if (!property)
       return res.status(404).json({ message: 'Property not found' });
 
@@ -153,7 +159,7 @@ exports.getPropertyById = async (req, res) => {
 exports.deleteProperty = async (req, res) => {
   try {
     const { id } = req.params;
-    await ResidentialProperty.delete(id);
+    await CommercialProperty.delete(id);
     res.json({ message: 'Property deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: 'Error deleting property', error });
