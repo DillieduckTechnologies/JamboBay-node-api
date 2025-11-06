@@ -1,5 +1,5 @@
 exports.up = async function (knex) {
-  // 🟢 ALTER CHATS TABLE
+  // ALTER CHATS TABLE
   await knex.schema.alterTable('chats', function (table) {
     // Drop existing foreign key constraints (if referencing users)
     table.dropForeign('client_id');
@@ -29,7 +29,7 @@ exports.up = async function (knex) {
 };
 
 exports.down = async function (knex) {
-  // 🔴 Revert back to referencing users table if needed
+  // Revert back to referencing users table if needed
   await knex.schema.alterTable('chats', function (table) {
     table.dropForeign('client_id');
     table.dropForeign('agent_id');
