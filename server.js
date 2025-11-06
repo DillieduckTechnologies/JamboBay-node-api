@@ -11,6 +11,9 @@ const residentialPropertyRoutes = require('./routes/residentiaPropertyRoutes');
 const commercialPropertyRoutes = require('./routes/commercialPropertyRoutes');
 const leaseRoutes = require('./routes/leaseRoutes');
 const appointmentRoutes = require('./routes/appointmentRoutes');
+const propertyViewingRoutes = require('./routes/propertyViewingRoutes');
+const purchaseApplicationRoutes = require('./routes/purchaseApplicationRoutes');
+const chatRoutes = require('./routes/chatRoutes');
 
 const errorHandler = require('./middleware/errorHandler');
 const swaggerDocs = require('./docs/swagger');
@@ -40,6 +43,9 @@ app.use(`${API_PREFIX}/residential-properties`, residentialPropertyRoutes);
 app.use(`${API_PREFIX}/leases`, leaseRoutes);
 app.use(`${API_PREFIX}/commercial-properties`, commercialPropertyRoutes);
 app.use(`${API_PREFIX}/appointments`, appointmentRoutes);
+app.use(`${API_PREFIX}/property-viewings`, propertyViewingRoutes);
+app.use(`${API_PREFIX}/purchase-applications`, purchaseApplicationRoutes);
+app.use(`${API_PREFIX}/chats`, chatRoutes);
 
 // Global error handler
 app.use(errorHandler);
