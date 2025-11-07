@@ -3,34 +3,6 @@ const router = express.Router();
 const userController = require('../controllers/userController');
 const { verifyToken } = require('../middleware/authMiddleware');
 
-// Public routes
-/**
- * @swagger
- * /users/login:
- *   post:
- *     summary: Login a user
- *     tags: [Users]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - username
- *               - password
- *             properties:
- *               username:
- *                 type: string
- *               password:
- *                 type: string
- *     responses:
- *       200:
- *         description: Login successful
- *       401:
- *         description: Invalid username or password
- */
-router.post('/login', userController.login);
 
 /**
  * @swagger

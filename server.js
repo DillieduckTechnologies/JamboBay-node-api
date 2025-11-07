@@ -2,6 +2,7 @@ const express = require('express');
 const dotenv = require('dotenv');
 
 const userRoutes = require('./routes/userRoutes');
+const authRoutes = require('./routes/authRoutes');
 const clientRoutes = require('./routes/clientRoutes');
 const companyRoutes = require('./routes/companyRoutes');
 const agentRoutes = require('./routes/agentRoutes');
@@ -36,6 +37,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // API routes
 app.use(`${API_PREFIX}/users`, userRoutes);
+app.use(`${API_PREFIX}/auth`, authRoutes);
 app.use(`${API_PREFIX}/clients`, clientRoutes);
 app.use(`${API_PREFIX}/companies`, companyRoutes);
 app.use(`${API_PREFIX}/agents`, agentRoutes);
