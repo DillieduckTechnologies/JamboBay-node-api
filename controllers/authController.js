@@ -83,6 +83,7 @@ exports.verifyEmail = async (req, res, next) => {
   }
 };
 
+//Resend verification email
 exports.resendVerification = async (req, res, next) => {
   try {
     const { email } = req.body;
