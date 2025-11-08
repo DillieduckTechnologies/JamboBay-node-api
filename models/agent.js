@@ -16,6 +16,27 @@ const Agent = {
     return db('agents').where({ id }).first();
   },
 
+  async findAgentProfile(id) {
+    const agent = await db('agents')
+      .join('users', 'agents.user_id', 'users.id')
+      .select(
+        'agents.*',
+        'users.username',
+        'users.email'
+      )
+      .where('agents.id', id)
+      .first();
+
+    if (!agent) return null;
+    const references = await db('agent_references')
+      .where({ agent_id: id })
+      .select('*');
+
+    agent.references = references;
+
+    return agent;
+  },
+
   async update(id, data) {
     const [updated] = await db('agents')
       .where({ id })

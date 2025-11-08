@@ -60,6 +60,16 @@ exports.getAgentById = async (req, res) => {
   }
 };
 
+exports.getAgentProfile = async (req, res) => {
+  try {
+    const agent = await Agent.findAgentProfile(req.params.id);
+    if (!agent) return res.status(404).json({ message: 'Agent profile not found' });
+    res.json(agent);  
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching agent profile', error });
+  }
+};
+
 exports.updateAgent = async (req, res) => {
   try {
     const agent = await Agent.update(req.params.id, req.body);

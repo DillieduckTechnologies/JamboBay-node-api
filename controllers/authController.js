@@ -24,7 +24,7 @@ exports.login = async (req, res, next) => {
     const match = await bcrypt.compare(password, user.password);
     if (!match) return res.status(401).json({ error: 'Invalid username or password' });
 
-    //Check if email is verified
+    // ✅ Check if email is verified
     if (!user.is_verified) {
       return res.status(403).json({
         error: 'Your email address is not verified. Please check your inbox for a verification link.',
@@ -41,6 +41,9 @@ exports.login = async (req, res, next) => {
 
     const expiresAt = new Date(Date.now() + 3 * 60 * 60 * 1000);
 
+    // ✅ Update last_login timestamp
+    await User.update(user.id, { last_login: new Date() });
+
     res.json({
       message: 'Login successful',
       token,
@@ -50,6 +53,7 @@ exports.login = async (req, res, next) => {
         username: user.username,
         email: user.email,
         role: role?.name || 'client',
+        last_login: new Date(), // send updated timestamp back in response
       },
     });
   } catch (err) {
@@ -57,6 +61,7 @@ exports.login = async (req, res, next) => {
     next(err);
   }
 };
+
 
 
 // Verify Email

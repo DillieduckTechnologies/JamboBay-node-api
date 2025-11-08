@@ -53,6 +53,8 @@ router.post('/create', verifyToken, agentReferenceController.createReference);
  *   get:
  *     summary: Get an agent reference by ID
  *     tags: [Agent References]
+ *     security:
+ *     - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -74,6 +76,8 @@ router.get('/:id', verifyToken, agentReferenceController.getReferenceById);
  *   get:
  *     summary: Get all references for an agent
  *     tags: [Agent References]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: agent_id

@@ -17,6 +17,8 @@ const { verifyToken } = require('../middleware/authMiddleware');
  *   get:
  *     summary: Get all agents
  *     tags: [Agents]
+ *     security:
+ *      - bearerAuth: []
  *     responses:
  *       200:
  *         description: List of agents
@@ -29,6 +31,8 @@ router.get('/', verifyToken, agentController.getAgents);
  *   get:
  *     summary: Get an agent by ID
  *     tags: [Agents]
+ *     security:
+ *      - bearerAuth: []
  *     parameters:
  *       - name: id
  *         in: path
@@ -42,6 +46,30 @@ router.get('/', verifyToken, agentController.getAgents);
  *         description: Agent not found
  */
 router.get('/:id', verifyToken, agentController.getAgentById);
+
+
+/**
+ * @swagger
+ * /agents/profile/{id}:
+ *   get:
+ *     summary: Get an agent by ID
+ *     tags: [Agents]
+ *     security:
+ *     - bearerAuth: []
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Agent details
+ *       404:
+ *         description: Agent not found
+ */
+router.get('/profile/:id', verifyToken, agentController.getAgentProfile);
+
 
 /**
  * @swagger
@@ -185,6 +213,8 @@ router.put('/update/:id', verifyToken, upload.fields([
  *   delete:
  *     summary: Delete an agent
  *     tags: [Agents]
+ *     security:
+ *     - bearerAuth: []
  *     parameters:
  *       - name: id
  *         in: path
