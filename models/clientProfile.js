@@ -1,10 +1,17 @@
 const db = require('../db/connection');
+const { findById } = require('./chat');
 
 const ClientProfile = {
   create: (profile) => db('client_profiles').insert(profile).returning('*'),
 
+
+
   update: (user_id, data) =>
     db('client_profiles').where({ user_id }).update(data).returning('*'),
+
+   async findById(id) {
+    return db('client_profiles').where({ id }).first();
+  },
 
   findByUserId: (user_id) =>
     db('client_profiles')

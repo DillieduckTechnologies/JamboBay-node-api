@@ -1,5 +1,11 @@
 const Chat = require("../models/chat");
-const Message = require("../models/message");
+const {sendChatInitiatedEmail} = require("../helpers/mailHelper");
+const { cli } = require("winston/lib/winston/config");
+const User = require("../models/user");
+const ResidentialProperty = require("../models/residentialProperty");
+const CommercialProperty = require("../models/commercialProperty");
+const Agent = require("../models/agent");
+const Client = require("../models/clientProfile");
 
 // Agent initiates a chat with a client about a property
 exports.startChat = async (req, res) => {
@@ -16,6 +22,35 @@ exports.startChat = async (req, res) => {
     }
 
     const chat = await Chat.create({ agent_id, client_id, property_id, property_type });
+    // Fetch agent and client details for email
+    const agentProfile = await Agent.findById(agent_id);
+    const clientProfile = await Client.findById(client_id);
+    const agent = await User.findById(agentProfile.user_id);
+    const client = await User.findById(clientProfile.user_id);
+    let model = null;
+    if (property_type === 'residential') {
+        model = ResidentialProperty;
+    } else if (property_type === 'commercial') {
+        model = CommercialProperty;
+    } else {
+        return res.status(400).json({ message: "Invalid property type." });
+    }
+    const property = await model.findById(property_id);
+    if (!property) {
+        return res.status(404).json({ message: "Property not found." });
+    }
+
+    // Send email notification to client
+    const chatUrl = `${process.env.FRONTEND_URL}chats/${chat.id}`;
+    console.log(client.email, client.first_name + ' ' + client.last_name, agent.first_name + ' ' + agent.last_name, property.name, chatUrl);
+    await sendChatInitiatedEmail(
+      client.email,
+      client.first_name + ' ' + client.last_name,
+      agent.first_name + ' ' + agent.last_name,
+      property.name,
+      chatUrl
+    );
+
 
     res.status(201).json({ message: "Chat started successfully.", data: chat });
   } catch (error) {

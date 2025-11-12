@@ -51,7 +51,7 @@ const upload = require('../middleware/upload');
 
 /**
  * @swagger
- * /clients:
+ * /clients/update:
  *   post:
  *     summary: Create or update client profile
  *     tags: [Clients]

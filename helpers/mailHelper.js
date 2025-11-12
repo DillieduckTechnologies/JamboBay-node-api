@@ -110,6 +110,25 @@ const sendRejectionEmail = async (email, name, entityType, notes = '') => {
     }
 };
 
+const sendChatInitiatedEmail = async (email, client_name, agent_name, property_name, chat_url) => {
+    try {
+        const subject = `Chat Initiated by ${agent_name}`;
+        const templateName = 'chat-initiated';
+        const replacements = {
+            client_name,
+            agent_name,
+            property_name,
+            chat_url,
+            currentYear: new Date().getFullYear(),
+            companyName: process.env.EMAIL_FROM_NAME || 'Our Company',
+        };
+        await sendEmail(email, subject, templateName, replacements);
+    } catch (error) {
+        console.error(`Error sending chat initiated email to ${email}:`, error);
+        throw error;
+    }
+};
+
 
 
 
@@ -118,4 +137,5 @@ module.exports = {
     sendVerificationEmail,
     sendApprovalEmail,
     sendRejectionEmail,
+    sendChatInitiatedEmail
 };
