@@ -13,8 +13,8 @@ exports.createProperty = async (req, res, next) => {
       physical_address,
       city,
       county,
-      gps_latitude,
-      gps_longitude,
+      latitude,
+      longitude,
       price,
       bedrooms,
       bathrooms,
@@ -32,8 +32,8 @@ exports.createProperty = async (req, res, next) => {
       physical_address,
       city,
       county,
-      gps_latitude,
-      gps_longitude,
+      latitude,
+      longitude,
       price,
       bedrooms,
       bathrooms,
@@ -41,6 +41,7 @@ exports.createProperty = async (req, res, next) => {
       available_from,
       company_id,
       agent_id,
+      added_by: req.user.id,
     });
 
     // Handle image uploads

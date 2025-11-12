@@ -17,6 +17,7 @@ const purchaseApplicationRoutes = require('./routes/purchaseApplicationRoutes');
 const chatRoutes = require('./routes/chatRoutes');
 const mortgageProviderRoutes = require('./routes/mortgageProviderRoutes');
 const mortgageApplicationRoutes = require('./routes/mortgageApplicationRoutes');
+const approvalRoutes = require('./routes/approvalRoutes');
 
 const errorHandler = require('./middleware/errorHandler');
 const swaggerDocs = require('./docs/swagger');
@@ -52,6 +53,7 @@ app.use(`${API_PREFIX}/purchase-applications`, purchaseApplicationRoutes);
 app.use(`${API_PREFIX}/chats`, chatRoutes);
 app.use(`${API_PREFIX}/mortgage/providers`, mortgageProviderRoutes);
 app.use(`${API_PREFIX}/mortgage/applications`, mortgageApplicationRoutes);
+app.use(`${API_PREFIX}/approvals`, approvalRoutes);
 
 // Global error handler
 app.use(errorHandler);

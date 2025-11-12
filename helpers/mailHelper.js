@@ -74,9 +74,48 @@ const sendVerificationEmail = async (email, firstName, token) => {
     }
 };
 
+const sendApprovalEmail = async (email, name, entityType) => {
+    try {
+        const subject = `${entityType.charAt(0).toUpperCase() + entityType.slice(1)} Approved`;
+        const templateName = 'approval-notification';
+        const replacements = {
+            name,
+            entityType: entityType.charAt(0).toUpperCase() + entityType.slice(1), // e.g. Residential, Commercial, Agent, Company
+            loginLink: `${process.env.FRONTEND_URL}login`, // optional for properties if needed
+            currentYear: new Date().getFullYear(),
+            companyName: process.env.EMAIL_FROM_NAME,
+        };
+        await sendEmail(email, subject, templateName, replacements);
+    } catch (error) {
+        console.error(`Error sending approval email to ${email}:`, error);
+        throw error;
+    }
+};
+
+const sendRejectionEmail = async (email, name, entityType, notes = '') => {
+    try {
+        const subject = `${entityType.charAt(0).toUpperCase() + entityType.slice(1)} Rejected`;
+        const templateName = 'rejection-notification';
+        const replacements = {
+            name,
+            entityType: entityType.charAt(0).toUpperCase() + entityType.slice(1),
+            notes: notes || 'Your application did not meet our requirements at this time.',
+            currentYear: new Date().getFullYear(),
+            companyName: process.env.EMAIL_FROM_NAME,
+        };
+        await sendEmail(email, subject, templateName, replacements);
+    } catch (error) {
+        console.error(`Error sending rejection email to ${email}:`, error);
+        throw error;
+    }
+};
+
+
 
 
 module.exports = {
    sendPasswordResetEmail,
     sendVerificationEmail,
+    sendApprovalEmail,
+    sendRejectionEmail,
 };
