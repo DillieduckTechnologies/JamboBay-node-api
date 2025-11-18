@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Appointment Notification</title>
+</head>
+<body>
+    <header style="background-color: #f0f0f0; padding: 10px;">
+        <h1>Appointment {{action}}</h1>
+    </header>
+    <main style="padding: 15px;">
+        <p>Dear {{agent_name}},</p>
+        <p>Client {{client_name}} has booked an appointment for {{appointment_date}} at {{appointment_time}} following their interest in Property: </strong> {{property_name}}</p>
+        <p><a href="{{appointment_url}}">View Appointment</a></p>
+    </main>
+    <footer style="background-color: #333; color: #fff; padding: 10px;">
+        <p>&copy; {{currentYear}} {{companyName}}. All rights reserved.</p>
+    </footer>
+</body>
+</html>

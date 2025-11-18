@@ -129,7 +129,27 @@ const sendChatInitiatedEmail = async (email, client_name, agent_name, property_n
     }
 };
 
-
+const sendAppointmentConfirmationEmail = async (email, agent_name, client_name, property_name, appointment_date, appointment_time,action,appointment_id) => {
+    try {
+        const subject = `Appointment Confirmation for ${property_name}`;
+        const templateName = 'appointment-notification';
+        const replacements = {
+            client_name,
+            agent_name,
+            property_name,
+            appointment_date,
+            appointment_time,
+            action,
+            currentYear: new Date().getFullYear(),
+            companyName: process.env.EMAIL_FROM_NAME || 'Our Company',
+            appointment_url: `${process.env.FRONTEND_URL}appointments/${appointment_id}`
+        };
+        await sendEmail(email, subject, templateName, replacements);
+    } catch (error) {
+        console.error(`Error sending appointment confirmation email to ${email}:`, error);
+        throw error;
+    }
+}   
 
 
 module.exports = {
@@ -137,5 +157,6 @@ module.exports = {
     sendVerificationEmail,
     sendApprovalEmail,
     sendRejectionEmail,
-    sendChatInitiatedEmail
+    sendChatInitiatedEmail,
+    sendAppointmentConfirmationEmail
 };

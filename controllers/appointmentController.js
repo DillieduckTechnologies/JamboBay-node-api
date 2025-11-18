@@ -1,4 +1,12 @@
 const Appointment = require('../models/appointment');
+const User = require('../models/user');
+const Client = require('../models/clientProfile');
+const Agent = require('../models/agent');
+const { sendAppointmentConfirmationEmail } = require('../helpers/mailHelper');
+const ResidentialProperty = require('../models/residentialProperty');
+const CommercialProperty = require('../models/commercialProperty');
+
+
 
 // Create a new appointment
 exports.createAppointment = async (req, res) => {
@@ -11,6 +19,31 @@ exports.createAppointment = async (req, res) => {
     }
 
     const newAppointment = await Appointment.create(data);
+    const client = await User.findById(await Client.findUserIdByProfileId(data.client_id));
+    const agent = await User.findById(await Agent.findUserIdByProfileId(data.agent_id));
+    let property_name = null;
+    if (data.property_type === 'residential') {
+      const property = await ResidentialProperty.findById(data.property_id);
+      property_name = property ? property.name : 'the property';
+    } else if (data.property_type === 'commercial') {
+      const property = await CommercialProperty.findById(data.property_id);
+      property_name = property ? property.name : 'the property';
+    }
+
+    const formattedTime = new Date(`2000-01-01T${data.appointment_time}`).toLocaleTimeString([], { 
+  hour: '2-digit', 
+  minute: '2-digit' 
+});
+    await sendAppointmentConfirmationEmail(
+      agent.email,
+      `${client.first_name} ${client.last_name}`,
+      `${agent.first_name} ${agent.last_name}`,
+      property_name,
+      data.appointment_date,
+      formattedTime,
+      action='Added',
+      newAppointment.id
+    );
     res.status(201).json(newAppointment);
   } catch (error) {
     console.error('Error creating appointment:', error);

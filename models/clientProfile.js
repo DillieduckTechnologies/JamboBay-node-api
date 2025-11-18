@@ -9,8 +9,12 @@ const ClientProfile = {
   update: (user_id, data) =>
     db('client_profiles').where({ user_id }).update(data).returning('*'),
 
-   async findById(id) {
+  async findById(id) {
     return db('client_profiles').where({ id }).first();
+  },
+  async findUserIdByProfileId(id) {
+    const profile = await db('client_profiles').where({ id }).first();
+    return profile ? profile.user_id : null;
   },
 
   findByUserId: (user_id) =>
