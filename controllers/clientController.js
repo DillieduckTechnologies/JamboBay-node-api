@@ -1,5 +1,6 @@
 const ClientProfile = require('../models/clientProfile');
 const logger = require('../utils/logger');
+const { successResponse, errorResponse } = require('../helpers/responseHelper');
 
 // Register or update client profile
 exports.registerOrUpdateClient = async (req, res, next) => {

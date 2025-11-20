@@ -4,6 +4,7 @@ const logger = require('../utils/logger');
 const jwt = require('jsonwebtoken');
 const {sendVerificationEmail} = require("../helpers/mailHelper");
 const bcrypt = require('bcrypt');
+const { successResponse, errorResponse } = require('../helpers/responseHelper');
 
 
 // Create user (registration)

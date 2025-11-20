@@ -4,13 +4,16 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const logger = require('../utils/logger');
 const crypto = require('crypto');
-const {sendPasswordResetEmail, sendVerificationEmail} = require("../helpers/mailHelper");
+const { sendPasswordResetEmail, sendVerificationEmail } = require("../helpers/mailHelper");
+const { successResponse, errorResponse } = require('../helpers/responseHelper');
+
 
 const {
   verifyEmailSchema,
   forgotPasswordSchema,
-  resetPasswordSchema,loginSchema
+  resetPasswordSchema, loginSchema
 } = require("../validators/authValidators");
+const { error } = require('console');
 
 // Login user
 exports.login = async (req, res, next) => {
@@ -19,22 +22,27 @@ exports.login = async (req, res, next) => {
     const { username, password } = req.body;
 
     const user = await User.findByUsername(username);
-    if (!user) return res.status(401).json({ error: 'Invalid username or password' });
+    if (!user) return res.json(errorResponse("Incorrect login credentials", "User does not exist",401));
 
     const match = await bcrypt.compare(password, user.password);
-    if (!match) return res.status(401).json({ error: 'Invalid username or password' });
+    if (!match) return res.json(errorResponse("Incorrect Password","Incorrect Password!",401));
 
-    // ✅ Check if email is verified
+    // Check if email is verified
     if (!user.is_verified) {
-      return res.status(403).json({
-        error: 'Your email address is not verified. Please check your inbox for a verification link.',
-      });
+      return res.json(errorResponse("Email not verified","Your email address is not verified. Please check your inbox for a verification link!",403));
+      
     }
 
     const role = await UserType.findById(user.user_type_id);
 
     const token = jwt.sign(
-      { id: user.id, username: user.username, role: role },
+      {
+        id: user.id, username: user.username, role: role, first_name: user.first_name,
+        last_name: user.last_name,
+        email: user.email,
+        role_id: role.id,
+        role: role?.name || 'client'
+      },
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRES_IN || '3h' }
     );
@@ -44,21 +52,26 @@ exports.login = async (req, res, next) => {
     // ✅ Update last_login timestamp
     await User.update(user.id, { last_login: new Date() });
 
-    res.json({
-      message: 'Login successful',
+    const response = {
       token,
       expires_at: expiresAt,
       user: {
         id: user.id,
         username: user.username,
+        first_name: user.first_name,
+        last_name: user.last_name,
         email: user.email,
+        role_id: role.id,
         role: role?.name || 'client',
-        last_login: new Date(), // send updated timestamp back in response
+        last_login: new Date(),
       },
-    });
+    };
+
+    return res.json(successResponse("Login successfull", response, 201));
   } catch (err) {
     logger.error('Login error: ' + err);
-    next(err);
+    return res.json(errorResponse("An error occurred", err.message, 400));
+   
   }
 };
 
@@ -69,22 +82,23 @@ exports.verifyEmail = async (req, res, next) => {
   try {
     await verifyEmailSchema.validate(req.query);
     const { token } = req.query;
-    if (!token) return res.status(400).json({ error: "Verification token missing" });
+    if (!token)  return res.json(errorResponse("Token is required", "Verification token missing", 400));
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findById(decoded.id);
-    if (!user) return res.status(404).json({ error: "User not found" });
+    if (!user) return res.json(errorResponse("User not found", "Enter correct email", 404));
 
     if (user.is_verified) {
-      return res.status(200).json({ message: "Email already verified" });
+      return res.json(successResponse("Email already verified", null, 200));
     }
 
     await User.update(user.id, { is_verified: true });
 
-    res.status(200).json({ message: "Email verified successfully" });
+    return res.json(successResponse("Email verified successfully", null,200));
   } catch (err) {
     logger.error("Email verification error: " + err);
-    next(err);
+    return res.json(errorResponse("An error occurred", err.message, 400));
+   
   }
 };
 
@@ -94,12 +108,11 @@ exports.resendVerification = async (req, res, next) => {
     const { email } = req.body;
 
     const user = await User.findByEmail(email);
-    if (!user) return res.status(404).json({ error: 'User not found' });
+    if (!user)  return res.json(errorResponse("User not found", "User not found", 404))
 
     if (user.is_verified) {
-      return res.status(400).json({ error: 'Email already verified' });
+      return  res.json(errorResponse("Email already verified", "Email already verified", 400))
     }
-
     // Create a new token (valid for 24h)
     const token = jwt.sign(
       { id: user.id },
@@ -108,12 +121,12 @@ exports.resendVerification = async (req, res, next) => {
     );
 
     // Send a new email
-    await sendVerificationEmail(user.email, token);
+    await sendVerificationEmail(user.email, user.first_name, token);
 
-    res.status(200).json({ message: 'Verification email resent successfully' });
+    return  res.json(successResponse("Verification email resent successfully", null, 200))
   } catch (err) {
     logger.error('Resend verification error: ' + err);
-    next(err);
+    return res.json(errorResponse("An error occurred", err.message, 400));
   }
 };
 
@@ -123,10 +136,10 @@ exports.forgotPassword = async (req, res, next) => {
   try {
     await forgotPasswordSchema.validate(req.body);
     const { email } = req.body;
-    if (!email) return res.status(400).json({ error: "Email is required" });
+    if (!email) return res.json(errorResponse("Email is required", "Email is required", 400))
 
     const user = await User.findByEmail(email);
-    if (!user) return res.status(404).json({ error: "User not found" });
+    if (!user)  return res.json(errorResponse("User not found", "User not found", 404))
 
     const resetToken = crypto.randomBytes(32).toString("hex");
     const hashedToken = crypto.createHash("sha256").update(resetToken).digest("hex");
@@ -136,13 +149,13 @@ exports.forgotPassword = async (req, res, next) => {
       password_reset_token: hashedToken,
       password_reset_expires: resetExpires,
     });
-   
+
     sendPasswordResetEmail(user.email, resetToken);
 
-    res.status(200).json({ message: "Password reset email sent" });
+    return  res.json(successResponse("Password reset email sent", null, 200))
   } catch (err) {
     logger.error("Forgot password error: " + err);
-    next(err);
+    return res.json(errorResponse("Forgot password error", err.message, 400))
   }
 };
 
@@ -151,13 +164,13 @@ exports.resetPassword = async (req, res, next) => {
   try {
     await resetPasswordSchema.validate(req.body);
     const { token, password } = req.body;
-    if (!token || !password) return res.status(400).json({ error: "Token and password are required" });
+    if (!token || !password) return res.json(errorResponse("Missing fields", "Token and password are required", 400));
 
     const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
     const user = await User.findByResetToken(hashedToken);
 
     if (!user || user.password_reset_expires < Date.now()) {
-      return res.status(400).json({ error: "Invalid or expired token" });
+      return res.json(errorResponse("Invalid or expired token", "Invalid or expired token", 400));
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -168,9 +181,9 @@ exports.resetPassword = async (req, res, next) => {
       password_reset_expires: null,
     });
 
-    res.status(200).json({ message: "Password reset successful" });
+    return  res.json(successResponse("Password reset successful", null, 200))
   } catch (err) {
     logger.error("Reset password error: " + err);
-    next(err);
+    return res.json(errorResponse("Reset password error", err.message, 400))
   }
 };

@@ -5,6 +5,7 @@ const ResidentialProperty = require('../models/residentialProperty');
 const logger = require('../utils/logger');
 const { sendApprovalEmail, sendRejectionEmail } = require('../helpers/mailHelper');
 const User = require('../models/user');
+const { successResponse, errorResponse } = require('../helpers/responseHelper');
 
 
 exports.updateApproval = async (req, res, next) => {

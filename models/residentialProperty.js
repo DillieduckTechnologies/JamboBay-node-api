@@ -8,6 +8,7 @@ const ResidentialProperty = {
     return property;
   },
 
+  
   async findAll() {
     return db('residential_properties').orderBy('created_at', 'desc');
   },

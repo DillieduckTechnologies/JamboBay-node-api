@@ -1,5 +1,6 @@
 const db = require('../db/connection');
 const PropertyViewing = require('../models/propertyViewing');
+const { successResponse, errorResponse } = require('../helpers/responseHelper');
 
 const PropertyViewingController = {
   //Create a new property viewing

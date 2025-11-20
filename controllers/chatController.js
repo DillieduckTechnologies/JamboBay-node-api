@@ -6,6 +6,7 @@ const ResidentialProperty = require("../models/residentialProperty");
 const CommercialProperty = require("../models/commercialProperty");
 const Agent = require("../models/agent");
 const Client = require("../models/clientProfile");
+const { successResponse, errorResponse } = require('../helpers/responseHelper');
 
 // Agent initiates a chat with a client about a property
 exports.startChat = async (req, res) => {
@@ -51,7 +52,7 @@ exports.startChat = async (req, res) => {
       chatUrl
     );
 
-
+    
     res.status(201).json({ message: "Chat started successfully.", data: chat });
   } catch (error) {
     console.error("Error starting chat:", error);

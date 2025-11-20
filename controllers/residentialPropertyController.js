@@ -1,7 +1,8 @@
 const ResidentialProperty = require('../models/residentialProperty');
 const PropertyImage = require('../models/residentialPropertyImage');
 const logger = require('../utils/logger');
-const { log } = require('winston');
+const { successResponse, errorResponse } = require('../helpers/responseHelper');
+
 
 exports.createProperty = async (req, res, next) => {
   try {
@@ -57,10 +58,11 @@ exports.createProperty = async (req, res, next) => {
     }
 
     logger.info(`Property created successfully: ${newProperty.id}`);
-    res.status(201).json({
-      message: 'Property created successfully',
-      property: newProperty,
-    });
+    // res.status(201).json({
+    //   message: 'Property created successfully',
+    //   property: newProperty,
+    // });
+    return res.status(201).json(successResponse("Property created successfully", newProperty));
   } catch (err) {
     logger.error('Error creating property: ' + err);
     next(err);
@@ -93,6 +95,7 @@ exports.updateProperty = async (req, res, next) => {
       message: 'Property updated successfully',
       property: updatedProperty,
     });
+    
   } catch (err) {
     logger.error('Error updating property: ' + err);
     next(err);
@@ -105,7 +108,7 @@ exports.getProperties = async (req, res) => {
   try {
     const properties = await ResidentialProperty.findAll();
     if (!properties.length) {
-      return res.json([]);
+      return res.status(200).json(successResponse("Residential properties fetched successfully", []));
     }
 
     const propertyIds = properties.map(p => p.id);
@@ -127,10 +130,10 @@ exports.getProperties = async (req, res) => {
       images: imagesByProperty[p.id] || [],
     }));
 
-    res.json(propertiesWithImages);
+    return res.status(200).json(successResponse("Residential properties fetched successfully", propertiesWithImages));
+
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Error fetching properties', error: error.message });
+    return res.status(200).json(errorResponse("Error fetching properties", error.message));
   }
 };
 
@@ -169,7 +172,7 @@ exports.uploadPropertyImage = async (req, res) => {
       : null;
 
     const imageData = {
-       property_id : req.params.id,
+      property_id: req.params.id,
       image,
       caption,
       is_primary: is_primary === 'true',

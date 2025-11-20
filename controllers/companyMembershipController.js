@@ -1,4 +1,5 @@
 const CompanyMembership = require('../models/companyMembership');
+const { successResponse, errorResponse } = require('../helpers/responseHelper');
 
 exports.getMemberships = async (req, res) => {
   try {
