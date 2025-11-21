@@ -2,7 +2,7 @@ const User = require('../models/user');
 const UserType = require('../models/userType');
 const logger = require('../utils/logger');
 const jwt = require('jsonwebtoken');
-const {sendVerificationEmail} = require("../helpers/mailHelper");
+const { sendVerificationEmail } = require("../helpers/mailHelper");
 const bcrypt = require('bcrypt');
 const { successResponse, errorResponse } = require('../helpers/responseHelper');
 
@@ -13,13 +13,11 @@ exports.createUser = async (req, res, next) => {
     const { username, password, email, first_name, last_name, user_type_id } = req.body;
 
     if (!username || !password || !email || !first_name || !last_name || !user_type_id) {
-      return res.status(400).json({
-        error: 'All fields are required: username, password, email, first_name, last_name, user_type_id',
-      });
+      return res.json(errorResponse("Missing fields", "All fields are required: username, password, email, first_name, last_name, user_type_id", 400))
     }
 
     const existing = await User.findByUsername(username);
-    if (existing) return res.status(400).json({ error: 'Username already exists' });
+    if (existing) return res.json(errorResponse("User Exists", "Username already exists", 400))
 
     const roleId = user_type_id || (await UserType.findById(4))?.id || null;
 
@@ -32,19 +30,20 @@ exports.createUser = async (req, res, next) => {
       user_type_id: roleId,
     });
     const token = jwt.sign({ id: newUser.id }, process.env.JWT_SECRET, { expiresIn: '1d' });
-    await sendVerificationEmail(email, first_name, token);
+    sendVerificationEmail(email, first_name, token);
 
 
-    res.status(201).json({
+    const response = {
       id: newUser.id,
       username: newUser.username,
       email: newUser.email,
       user_type_id: newUser.user_type_id,
       date_joined: newUser.date_joined,
-    });
+    };
+    return res.json(successResponse("User registered successfully", response, 200))
   } catch (err) {
     logger.error('Error creating user: ' + err);
-    next(err);
+    return res.json(errorResponse("Error creating user", err.message, 400));
   }
 };
 
@@ -56,32 +55,32 @@ exports.updateUser = async (req, res, next) => {
     const { username, email, first_name, last_name, user_type_id, password } = req.body;
 
     if (!id) {
-      return res.status(400).json({ error: 'User ID is required' });
+      return res.json(errorResponse("Missing fields", "User ID is required", 400))
     }
 
     // Find existing user
     const existingUser = await User.findById(id);
     if (!existingUser) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.json(errorResponse("Not found", "User not found", 404))
     }
 
     const updatedData = {};
     let emailChanged = false;
 
-    // ✅ Username update + check
+    // Username update + check
     if (username && username !== existingUser.username) {
       const usernameExists = await User.findByUsername(username);
       if (usernameExists && usernameExists.id !== parseInt(id)) {
-        return res.status(400).json({ error: 'Username already taken' });
+        return res.json(errorResponse("User Exists", "Username already taken", 404))
       }
       updatedData.username = username;
     }
 
-    // ✅ Email update + verification reset
+    // Email update + verification reset
     if (email && email !== existingUser.email) {
       const emailExists = await User.findByEmail(email);
       if (emailExists && emailExists.id !== parseInt(id)) {
-        return res.status(400).json({ error: 'Email already taken' });
+        return res.json(errorResponse("User Exists", "Email already taken", 404))
       }
 
       emailChanged = true;
@@ -102,7 +101,7 @@ exports.updateUser = async (req, res, next) => {
 
     // Reject if nothing to update
     if (Object.keys(updatedData).length === 0) {
-      return res.status(400).json({ error: 'No valid fields provided for update' });
+      return res.json(errorResponse("Missing fields", "No valid fields provided for update", 400))
     }
 
     // Update user
@@ -112,25 +111,23 @@ exports.updateUser = async (req, res, next) => {
     // ✅ If email changed, send verification email
     if (emailChanged) {
       const token = jwt.sign({ id: updatedUser.id }, process.env.JWT_SECRET, { expiresIn: '1d' });
-      await sendVerificationEmail(updatedUser.email, updatedUser.first_name, token);
+      sendVerificationEmail(updatedUser.email, updatedUser.first_name, token);
     }
 
-    res.status(200).json({
-      message: 'User updated successfully',
-      user: {
-        id: updatedUser.id,
-        username: updatedUser.username,
-        email: updatedUser.email,
-        first_name: updatedUser.first_name,
-        last_name: updatedUser.last_name,
-        user_type_id: updatedUser.user_type_id,
-        is_verified: updatedUser.is_verified,
-        date_joined: updatedUser.date_joined,
-      },
-    });
+    const response = {
+      id: updatedUser.id,
+      username: updatedUser.username,
+      email: updatedUser.email,
+      first_name: updatedUser.first_name,
+      last_name: updatedUser.last_name,
+      user_type_id: updatedUser.user_type_id,
+      is_verified: updatedUser.is_verified,
+      date_joined: updatedUser.date_joined,
+    };
+    return res.json(successResponse("User updated successfully", response, 200));
   } catch (err) {
     logger.error('Error updating user: ' + err);
-    next(err);
+    return res.json(errorResponse("Error updating user", err.message, 400));
   }
 };
 
@@ -140,11 +137,11 @@ exports.updateUser = async (req, res, next) => {
 exports.getUsers = async (req, res, next) => {
   try {
     if (req.user?.role !== 'superuser') {
-      return res.status(403).json({ error: 'Access denied. Superuser privileges required.' });
+      return res.json(errorResponse("Unauthorized", "Access denied. Superuser privileges required.", 403))
     }
     const users = await User.getAll();
     res.json(users);
   } catch (err) {
-    next(err);
+    return res.json(errorResponse("Error fetching users", err.message, 400));
   }
 };

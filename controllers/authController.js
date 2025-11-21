@@ -8,12 +8,7 @@ const { sendPasswordResetEmail, sendVerificationEmail } = require("../helpers/ma
 const { successResponse, errorResponse } = require('../helpers/responseHelper');
 
 
-const {
-  verifyEmailSchema,
-  forgotPasswordSchema,
-  resetPasswordSchema, loginSchema
-} = require("../validators/authValidators");
-const { error } = require('console');
+const {  verifyEmailSchema,  forgotPasswordSchema,  resetPasswordSchema, loginSchema} = require("../validators/authValidators");
 
 // Login user
 exports.login = async (req, res, next) => {
@@ -37,7 +32,7 @@ exports.login = async (req, res, next) => {
 
     const token = jwt.sign(
       {
-        id: user.id, username: user.username, role: role, first_name: user.first_name,
+        id: user.id, username: user.username, first_name: user.first_name,
         last_name: user.last_name,
         email: user.email,
         role_id: role.id,
@@ -121,7 +116,7 @@ exports.resendVerification = async (req, res, next) => {
     );
 
     // Send a new email
-    await sendVerificationEmail(user.email, user.first_name, token);
+    sendVerificationEmail(user.email, user.first_name, token);
 
     return  res.json(successResponse("Verification email resent successfully", null, 200))
   } catch (err) {
@@ -151,7 +146,7 @@ exports.forgotPassword = async (req, res, next) => {
     });
 
     sendPasswordResetEmail(user.email, resetToken);
-
+    
     return  res.json(successResponse("Password reset email sent", null, 200))
   } catch (err) {
     logger.error("Forgot password error: " + err);

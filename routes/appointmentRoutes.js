@@ -66,7 +66,7 @@ const { verifyToken } = require('../middleware/authMiddleware');
 
 /**
  * @swagger
- * /appointments:
+ * /appointments/create:
  *   post:
  *     summary: Create a new appointment
  *     tags: [Appointments]

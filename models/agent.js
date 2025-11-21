@@ -15,6 +15,16 @@ const Agent = {
   async findById(id) {
     return db('agents').where({ id }).first();
   },
+
+  async findAgentIdByUserId(user_id) {
+    const result = await db('agents')
+      .select('id')
+      .where('agents.user_id', user_id)
+      .first();
+
+    return result?.id || null;
+  },
+
   async findUserIdByProfileId(id) {
     const agent = await db('agents').where({ id }).first();
     return agent ? agent.user_id : null;

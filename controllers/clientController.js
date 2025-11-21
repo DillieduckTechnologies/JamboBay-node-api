@@ -5,7 +5,7 @@ const { successResponse, errorResponse } = require('../helpers/responseHelper');
 // Register or update client profile
 exports.registerOrUpdateClient = async (req, res, next) => {
   try {
-    const userId = req.user.id; 
+    const userId = req.user.id;
     const {
       id_or_passport_number,
       phone_number,
@@ -33,7 +33,7 @@ exports.registerOrUpdateClient = async (req, res, next) => {
         profile_photo,
       });
       logger.info(`Client profile updated for user_id: ${userId}`);
-      return res.json({ message: 'Profile updated successfully', profile: updated });
+      return res.json(successResponse('Profile updated successfully', updated, 201));
     } else {
       const newProfile = await ClientProfile.create({
         user_id: userId,
@@ -47,11 +47,11 @@ exports.registerOrUpdateClient = async (req, res, next) => {
         profile_photo,
       });
       logger.info(`Client profile created for user_id: ${userId}`);
-      return res.status(201).json({ message: 'Profile created successfully', profile: newProfile });
+      return res.json(successResponse('Profile created successfully', newProfile, 201));
     }
   } catch (err) {
-    logger.error('Client profile error: ' + err);
-    next(err);
+    logger.error('An error occurred: ' + err);
+    return res.json(errorResponse("An error occurred", err.message, 400));
   }
 };
 
@@ -62,12 +62,12 @@ exports.getClientProfile = async (req, res, next) => {
     const profile = await ClientProfile.findByUserId(userId);
 
     if (!profile) {
-      return res.status(404).json({ error: 'Profile not found' });
+      return res.json(errorResponse("Not found", "Profile not found", err.message, 404));
     }
 
     res.json(profile);
   } catch (err) {
-    logger.error('Fetch client profile error: ' + err);
-    next(err);
+    logger.error('An error occurred: ' + err);
+    return res.json(errorResponse("An error occurred", err.message, 400));
   }
 };

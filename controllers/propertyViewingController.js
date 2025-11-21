@@ -1,6 +1,7 @@
 const db = require('../db/connection');
 const PropertyViewing = require('../models/propertyViewing');
 const { successResponse, errorResponse } = require('../helpers/responseHelper');
+const logger = require('../utils/logger');
 
 const PropertyViewingController = {
   //Create a new property viewing
@@ -9,7 +10,7 @@ const PropertyViewingController = {
       const { property_id, property_type, client_id, agent_id, scheduled_date } = req.body;
 
       if (!property_id || !property_type || !client_id || !agent_id || !scheduled_date) {
-        return res.status(400).json({ error: 'Missing required fields' });
+        return res.json(errorResponse("Missing fields!", "Missing required fields.", 400));
       }
 
       const viewing = await PropertyViewing.create({
@@ -20,10 +21,11 @@ const PropertyViewingController = {
         scheduled_date
       });
 
-      return res.status(201).json(viewing);
-    } catch (error) {
-      console.error('Error creating property viewing:', error);
-      return res.status(500).json({ error: 'Server error' });
+      return res.json(successResponse("Property viewing created successfully", viewing, 201))
+
+    } catch (err) {
+      logger.error('An error occurred: ' + err);
+      return res.json(errorResponse("An error occurred", err.message, 400));
     }
   },
 
@@ -52,11 +54,10 @@ const PropertyViewingController = {
           return { ...view, property };
         })
       );
-
-      return res.json(enrichedViewings);
-    } catch (error) {
-      console.error('Error fetching viewings:', error);
-      return res.status(500).json({ error: 'Server error' });
+      return res.json(successResponse("Property viewings fetched successfully", enrichedViewings, 200))
+    } catch (err) {
+      logger.error('An error occurred: ' + err);
+      return res.json(errorResponse("An error occurred", err.message, 400));
     }
   },
 
@@ -66,7 +67,7 @@ const PropertyViewingController = {
       const { id } = req.params;
       const viewing = await PropertyViewing.findById(id);
 
-      if (!viewing) return res.status(404).json({ error: 'Viewing not found' });
+      if (!viewing) return res.json(errorResponse("Not found", "Viewing not found", 404));
 
       const table =
         viewing.property_type === 'residential'
@@ -74,10 +75,11 @@ const PropertyViewingController = {
           : 'commercial_properties';
 
       const property = await db(table).where('id', viewing.property_id).first();
-      return res.json({ ...viewing, property });
-    } catch (error) {
-      console.error('Error fetching viewing:', error);
-      return res.status(500).json({ error: 'Server error' });
+      const response = { ...viewing, property };
+      return res.json(successResponse("Property viewing fetched successfully", response, 200))
+    } catch (err) {
+      logger.error('An error occurred: ' + err);
+      return res.json(errorResponse("An error occurred", err.message, 400));
     }
   },
 
@@ -90,10 +92,10 @@ const PropertyViewingController = {
       const updated = await PropertyViewing.update(id, data);
       if (!updated) return res.status(404).json({ error: 'Viewing not found' });
 
-      return res.json(updated);
-    } catch (error) {
-      console.error('Error updating viewing:', error);
-      return res.status(500).json({ error: 'Server error' });
+      return res.json(successResponse("Property viewing updated successfully", updated, 201))
+    } catch (err) {
+      logger.error('An error occurred: ' + err);
+      return res.json(errorResponse("An error occurred", err.message, 400));
     }
   },
 
@@ -104,10 +106,10 @@ const PropertyViewingController = {
       const deleted = await PropertyViewing.delete(id);
 
       if (!deleted) return res.status(404).json({ error: 'Viewing not found' });
-      return res.json({ message: 'Viewing deleted successfully' });
-    } catch (error) {
-      console.error('Error deleting viewing:', error);
-      return res.status(500).json({ error: 'Server error' });
+      return res.json(successResponse("Property viewing deleted successfully", id, 201))
+    } catch (err) {
+      logger.error('An error occurred: ' + err);
+      return res.json(errorResponse("An error occurred", err.message, 400));
     }
   }
 };

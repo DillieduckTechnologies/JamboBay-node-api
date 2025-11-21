@@ -12,7 +12,7 @@ exports.updateApproval = async (req, res, next) => {
   try {
     //Only admins can perform this action
     if (!req.user || req.user.role.name !== 'admin') {
-      return res.status(403).json({ error: 'Only admins can perform approvals or verifications' });
+      return res.json(errorResponse("Unauthorized!", "Only admins can perform approvals or verifications.", 403))
     }
 
     var { action, reason, notes, id, type } = req.body;
@@ -27,12 +27,12 @@ exports.updateApproval = async (req, res, next) => {
 
     const model = models[type];
     if (!model) {
-      return res.status(400).json({ error: 'Invalid approval type' });
+      return res.json(errorResponse("Invalid!", "Invalid approval type.", 400))
     }
 
     const entity = await model.findById(id);
     if (!entity) {
-      return res.status(404).json({ error: `${type} not found` });
+      return res.json(errorResponse("Not found!", `${type} not found`, 404))
     }
 
     const updateData = {};
@@ -51,7 +51,7 @@ exports.updateApproval = async (req, res, next) => {
         updateData.verified_by = req.user.id;
         updateData.verified_at = now;
       } else {
-        return res.status(400).json({ error: 'Action must be approve or reject' });
+        return res.json(errorResponse("Invalid Action!", "Action must be approve or reject.", 400))
       }
 
       // Apply verification notes for both agents & companies
@@ -73,14 +73,14 @@ exports.updateApproval = async (req, res, next) => {
         updateData.approved_at = now;
         updateData.rejection_reason = reason || 'No reason provided';
       } else {
-        return res.status(400).json({ error: 'Action must be approve or reject' });
+        return res.json(errorResponse("Invalid Action!", "Action must be approve or reject.", 400))
       }
     }
 
     await model.update(id, updateData);
 
     //send notifications 
-    
+
     let user;
     if (type === 'agent') {
       user = await User.findById(entity.user_id);
@@ -88,32 +88,32 @@ exports.updateApproval = async (req, res, next) => {
       user = await User.findById(entity.created_by);
       console.log(user)
     } else if (type === 'residential' || type === 'commercial') {
-      type = type+" property: "+entity.name
+      type = type + " property: " + entity.name
       user = await User.findById(entity.added_by);
     }
 
     // Fallback in case user not found
     const userEmail = user?.email;
-    const userName = user?.first_name+" "+user?.last_name || 'User';
-    console.log(userEmail + " "+userName + " "+type)
+    const userName = user?.first_name + " " + user?.last_name || 'User';
+    console.log(userEmail + " " + userName + " " + type)
 
     if (!userEmail) {
-      console.warn(`No email found for entity ${type} with ID ${entity.id}`);
+      logger.error(`No email found for entity ${type} with ID ${entity.id}`);
     } else {
       if (action === 'approve') {
-        await sendApprovalEmail(userEmail, userName, type);
+        sendApprovalEmail(userEmail, userName, type);
       } else if (action === 'reject') {
-        await sendRejectionEmail(userEmail, userName, type, reason || notes);
+        sendRejectionEmail(userEmail, userName, type, reason || notes);
       }
     }
 
-    res.json({
-      message: `${type} ${action}d successfully`,
+    const response = {
       id,
       status: updateData.status,
-    });
+    };
+    return res.json(successResponse(`${type} ${action}d successfully`, response, 201))
   } catch (err) {
-    logger.error('Approval error: ' + err);
-    next(err);
+    logger.error('An error occurred: ' + err);
+    return res.json(errorResponse("An error occurred", err.message, 400));
   }
 };

@@ -1,24 +1,27 @@
 const CompanyMembership = require('../models/companyMembership');
 const { successResponse, errorResponse } = require('../helpers/responseHelper');
+const logger = require('../utils/logger');
+
 
 exports.getMemberships = async (req, res) => {
   try {
     const memberships = await CompanyMembership.findAll();
-    res.json(memberships);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Error fetching memberships', error });
+    return res.json(successResponse("Company Memberships fetched successfully", memberships, 200))
+  } catch (err) {
+    logger.error('An error occurred: ' + err);
+    return res.json(errorResponse("An error occurred", err.message, 400));
   }
 };
 
 exports.getMembershipById = async (req, res) => {
   try {
     const membership = await CompanyMembership.findById(req.params.id);
-    if (!membership) return res.status(404).json({ message: 'Membership not found' });
-    res.json(membership);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Error fetching membership', error });
+    if (!membership) return res.json(errorResponse("Not found", "Membership not found", 404));
+    return res.json(successResponse("Company Membership fetched successfully", membership, 200))
+
+  } catch (err) {
+    logger.error('An error occurred: ' + err);
+    return res.json(errorResponse("An error occurred", err.message, 400));
   }
 };
 
@@ -33,10 +36,10 @@ exports.createMembership = async (req, res) => {
     };
 
     const membership = await CompanyMembership.create(data);
-    res.status(201).json(membership);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Error creating membership', error });
+    return res.json(successResponse("Company Membership created successfully", membership, 201))
+  } catch (err) {
+    logger.error('An error occurred: ' + err);
+    return res.json(errorResponse("An error occurred", err.message, 400));
   }
 };
 
@@ -50,19 +53,19 @@ exports.updateMembership = async (req, res) => {
     };
 
     const membership = await CompanyMembership.update(req.params.id, data);
-    res.json(membership);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Error updating membership', error });
+    return res.json(successResponse("Company Membership updated successfully", membership, 201))
+  } catch (err) {
+    logger.error('An error occurred: ' + err);
+    return res.json(errorResponse("An error occurred", err.message, 400));
   }
 };
 
 exports.deleteMembership = async (req, res) => {
   try {
     await CompanyMembership.delete(req.params.id);
-    res.json({ message: 'Membership deleted successfully' });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Error deleting membership', error });
+    return res.json(successResponse("Company Membership deleted successfully", null, 201))
+  } catch (err) {
+    logger.error('An error occurred: ' + err);
+    return res.json(errorResponse("An error occurred", err.message, 400));
   }
 };

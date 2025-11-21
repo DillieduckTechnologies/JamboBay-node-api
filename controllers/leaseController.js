@@ -16,7 +16,7 @@ exports.applyForLease = async (req, res) => {
     } = req.body;
 
     if (!client_profile_id || (!residential_property_id && !commercial_property_id)) {
-      return res.status(400).json({ message: 'Property and client_profile_id are required' });
+      return res.json(errorResponse("Missing fields!", "Property and client_profile_id are required", 400));
     }
 
     const lease = await PropertyLease.create({
@@ -30,20 +30,20 @@ exports.applyForLease = async (req, res) => {
       special_requests,
     });
 
-    res.status(201).json({ message: 'Lease application submitted successfully', lease });
-  } catch (error) {
-    console.error('Error applying for lease:', error);
-    logger.error('Error applying for lease:', error);
-    res.status(500).json({ message: 'Error applying for lease', error });
+    return res.json(successResponse("Lease application submitted successfully", lease, 201))
+  } catch (err) {
+    logger.error('An error occurred: ' + err);
+    return res.json(errorResponse("An error occurred", err.message, 400));
   }
 };
 
 exports.getAllLeases = async (req, res) => {
   try {
     const leases = await PropertyLease.findAll(req.query);
-    res.json(leases);
-  } catch (error) {
-    res.status(500).json({ message: 'Error fetching leases', error });
+    return res.json(successResponse("Leases fetched successfully", leases, 200))
+  } catch (err) {
+    logger.error('An error occurred: ' + err);
+    return res.json(errorResponse("An error occurred", err.message, 400));
   }
 };
 
@@ -52,10 +52,11 @@ exports.getLeaseById = async (req, res) => {
     const { id } = req.params;
     const lease = await PropertyLease.findById(id);
 
-    if (!lease) return res.status(404).json({ message: 'Lease not found' });
-    res.json(lease);
-  } catch (error) {
-    res.status(500).json({ message: 'Error fetching lease', error });
+    if (!lease) return res.json(errorResponse("Not found", "Lease not found", 404));
+    return res.json(successResponse("Lease fetched successfully", lease, 201))
+  } catch (err) {
+    logger.error('An error occurred: ' + err);
+    return res.json(errorResponse("An error occurred", err.message, 400));
   }
 };
 
@@ -66,17 +67,18 @@ exports.reviewLease = async (req, res) => {
     const { status } = req.body;
 
     //Agent can only approve or reject
-    if(req.user.role.name !== 'agent'){ 
-      return res.status(403).json({ message: 'Forbidden: Only agents can review leases' });
+    if (req.user.role.name !== 'agent') {
+      return res.json(errorResponse("Unauthorized!", "Only agents can review lease.", 403));
     }
 
     if (!['approved', 'rejected'].includes(status)) {
-      return res.status(400).json({ message: 'Invalid status value' });
+      return res.json(errorResponse("Invalid!", "Invalid status value.", 400))
     }
 
     const updated = await PropertyLease.reviewLease(id, reviewerId, status);
-    res.json({ message: `Lease ${status} successfully`, lease: updated });
-  } catch (error) {
-    res.status(500).json({ message: 'Error reviewing lease', error });
+    return res.json(successResponse(`Lease ${status} successfully`, lease, 201))
+  } catch (err) {
+    logger.error('An error occurred: ' + err);
+    return res.json(errorResponse("An error occurred", err.message, 400));
   }
 };

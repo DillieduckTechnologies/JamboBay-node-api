@@ -1,7 +1,6 @@
 const CommercialProperty = require('../models/commercialProperty');
 const PropertyImage = require('../models/commercialPropertyImage');
 const logger = require('../utils/logger');
-const { log } = require('winston');
 const { successResponse, errorResponse } = require('../helpers/responseHelper');
 
 exports.createProperty = async (req, res, next) => {
@@ -25,10 +24,10 @@ exports.createProperty = async (req, res, next) => {
       available_from,
       company_id,
       agent_id,
-      
+
     } = req.body;
 
-    const newProperty = await  CommercialProperty.create({
+    const newProperty = await CommercialProperty.create({
       name,
       category,
       description,
@@ -48,7 +47,7 @@ exports.createProperty = async (req, res, next) => {
       company_id,
       agent_id,
       added_by: req.user.id,
-    });  
+    });
 
     // Handle image uploads
     if (req.files && req.files.length > 0) {
@@ -63,13 +62,10 @@ exports.createProperty = async (req, res, next) => {
     }
 
     logger.info(`Property created successfully: ${newProperty.id}`);
-    res.status(201).json({
-      message: 'Property created successfully',
-      property: newProperty,
-    });
+    return res.json(successResponse("Property created successfully", newProperty, 201))
   } catch (err) {
-    logger.error('Error creating property: ' + err);
-    next(err);
+    logger.error('An error occurred: ' + err);
+    return res.json(errorResponse("An error occurred", err.message, 400));
   }
 };
 
@@ -95,13 +91,10 @@ exports.updateProperty = async (req, res, next) => {
     }
 
     logger.info(`Property updated successfully: ${id}`);
-    res.json({
-      message: 'Property updated successfully',
-      property: updatedProperty,
-    });
+    return res.json(successResponse("Property updated successfully", updatedProperty, 201))
   } catch (err) {
-    logger.error('Error updating property: ' + err);
-    next(err);
+    logger.error('An error occurred: ' + err);
+    return res.json(errorResponse("An error occurred", err.message, 400));
   }
 };
 
@@ -133,10 +126,10 @@ exports.getProperties = async (req, res) => {
       images: imagesByProperty[p.id] || [],
     }));
 
-    res.json(propertiesWithImages);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Error fetching properties', error: error.message });
+    return res.json(successResponse("Properties fetched successfully", propertiesWithImages, 200))
+  } catch (err) {
+    logger.error('An error occurred: ' + err);
+    return res.json(errorResponse("An error occurred", err.message, 400));
   }
 };
 
@@ -146,13 +139,14 @@ exports.getPropertyById = async (req, res) => {
     const { id } = req.params;
     const property = await CommercialProperty.findById(id);
     if (!property)
-      return res.status(404).json({ message: 'Property not found' });
+      return res.json(errorResponse("Not found", "Property not found", 404))
 
     const images = await PropertyImage.findByPropertyId(id);
-    res.json({ ...property, images });
-  } catch (error) {
-    logger.error('Error fetching property by ID: ' + error);
-    res.status(500).json({ message: 'Error fetching property', error });
+    const response = { ...property, images };
+    return res.json(successResponse("Property fetched successfully", response, 200))
+  } catch (err) {
+    logger.error('An error occurred: ' + err);
+    return res.json(errorResponse("An error occurred", err.message, 400));
   }
 };
 
@@ -161,9 +155,10 @@ exports.deleteProperty = async (req, res) => {
   try {
     const { id } = req.params;
     await CommercialProperty.delete(id);
-    res.json({ message: 'Property deleted successfully' });
-  } catch (error) {
-    res.status(500).json({ message: 'Error deleting property', error });
+    return res.json(successResponse("Property deleted successfully", null, 201))
+  } catch (err) {
+    logger.error('An error occurred: ' + err);
+    return res.json(errorResponse("An error occurred", err.message, 400));
   }
 };
 
@@ -175,20 +170,15 @@ exports.uploadPropertyImage = async (req, res) => {
       : null;
 
     const imageData = {
-       property_id : req.params.id,
+      property_id: req.params.id,
       image,
       caption,
       is_primary: is_primary === 'true',
     };
     const savedImage = await PropertyImage.addImage(imageData);
-    console.log('Saved Image:', savedImage);
-
-    res.status(201).json({
-      message: 'Image uploaded successfully',
-      image: savedImage,
-    });
-  } catch (error) {
-    logger.error('Error uploading property image: ' + error);
-    res.status(500).json({ message: 'Error uploading image', error });
+    return res.json(successResponse("Property Image uploaded successfully", savedImage, 201))
+  } catch (err) {
+    logger.error('An error occurred: ' + err);
+    return res.json(errorResponse("An error occurred", err.message, 400));
   }
 };
